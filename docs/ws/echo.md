@@ -1,11 +1,11 @@
 ---
 method: get
 title: WebSocket Echo
-desc: A WebSocket endpoint that echoes back every message it receives, identically, for both plain text and JSON payloads.
+desc: A WebSocket endpoint that echoes back every message it receives, identically, for plain text, JSON and binary payloads.
 path: ws/echo
 ---
 
-This is a WebSocket endpoint that echoes back every message it receives, identically, for both plain text and JSON payloads. The connection is established through a standard HTTP `GET` upgrade handshake. Once connected, it is fully bidirectional: every text or JSON frame the server receives is sent straight back to the client unchanged. When the client disconnects, the server closes the connection cleanly.
+This is a WebSocket endpoint that echoes back every message it receives, identically, for plain text, JSON and binary payloads. The connection is established through a standard HTTP `GET` upgrade handshake. Once connected, it is fully bidirectional: every text or JSON frame the server receives is sent straight back to the client unchanged. When the client disconnects, the server closes the connection cleanly.
 
 It is intended as a self-hosted echo endpoint for testing WebSocket clients (such as API Dash) without relying on public endpoints.
 
@@ -29,6 +29,7 @@ ws://127.0.0.1:8000/ws/echo
 | ----------- | ----------- |
 | Plain text frame | The same text, unchanged |
 | Valid JSON text frame | The same JSON, re-serialized and semantically identical |
+| Binary frame | The same bytes, unchanged, as a binary frame |
 | Client closes the connection | Server closes cleanly (normal closure) |
 
 ## Sample Usage

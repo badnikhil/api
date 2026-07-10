@@ -46,7 +46,7 @@ Endpoints for testing Server-Sent Events (SSE).
 
 ### 9. WebSockets
 
-A self-hosted WebSocket echo endpoint for testing WebSocket clients without relying on public endpoints.
+Self-hosted WebSocket endpoints (echo, heartbeat, ticker, auth, broadcast, close-with-code) for testing WebSocket clients without relying on public endpoints.
 
 ## Understanding the Project Structure
 
