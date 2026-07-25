@@ -12,7 +12,7 @@ This is a WebSocket endpoint for testing how clients handle server-initiated clo
 Connect to the endpoint using the WebSocket scheme. Use `wss://` against the deployed (TLS) API, or `ws://` against a local server.
 
 ```
-wss://api.foss42.com/ws/close/4001
+wss://api.apidash.dev/ws/close/4001
 ```
 
 When running the API locally:
@@ -44,7 +44,7 @@ import websockets
 
 async def main():
     try:
-        async with websockets.connect("wss://api.foss42.com/ws/close/4001") as ws:
+        async with websockets.connect("wss://api.apidash.dev/ws/close/4001") as ws:
             print(await ws.recv())  # {"type": "close", "message": "Closing with code 4001"}
             await ws.recv()
     except websockets.exceptions.ConnectionClosed as e:

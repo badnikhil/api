@@ -12,7 +12,7 @@ This is a chat-style ("fan-out") WebSocket endpoint: every text message sent by 
 Connect to the endpoint using the WebSocket scheme. Use `wss://` against the deployed (TLS) API, or `ws://` against a local server.
 
 ```
-wss://api.foss42.com/ws/broadcast
+wss://api.apidash.dev/ws/broadcast
 ```
 
 When running the API locally:
@@ -37,7 +37,7 @@ Messages are relayed unchanged. Clients that have disconnected are dropped from 
 import asyncio
 import websockets
 
-URL = "wss://api.foss42.com/ws/broadcast"
+URL = "wss://api.apidash.dev/ws/broadcast"
 
 
 async def main():

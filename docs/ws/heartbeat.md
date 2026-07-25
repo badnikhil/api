@@ -14,7 +14,7 @@ It is intended for testing WebSocket clients that require heartbeat handling or 
 Connect to the endpoint using the WebSocket scheme. Use `wss://` against the deployed (TLS) API, or `ws://` against a local server.
 
 ```
-wss://api.foss42.com/ws/heartbeat
+wss://api.apidash.dev/ws/heartbeat
 ```
 
 When running the API locally:
@@ -37,7 +37,7 @@ ws://127.0.0.1:8000/ws/heartbeat
 ### Example: JavaScript (browser `WebSocket`)
 
 ```javascript
-const ws = new WebSocket("wss://api.foss42.com/ws/heartbeat");
+const ws = new WebSocket("wss://api.apidash.dev/ws/heartbeat");
 
 ws.onopen = () => {
     // Send a ping message

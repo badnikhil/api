@@ -12,7 +12,7 @@ This is a WebSocket endpoint that pushes a JSON ticker message from the server e
 Connect to the endpoint using the WebSocket scheme. Use `wss://` against the deployed (TLS) API, or `ws://` against a local server.
 
 ```
-wss://api.foss42.com/ws/ticker/2
+wss://api.apidash.dev/ws/ticker/2
 ```
 
 When running the API locally:
@@ -47,7 +47,7 @@ import websockets
 
 
 async def main():
-    async with websockets.connect("wss://api.foss42.com/ws/ticker/2") as ws:
+    async with websockets.connect("wss://api.apidash.dev/ws/ticker/2") as ws:
         for _ in range(3):
             print(await ws.recv())
         # {"type": "ticker", "tick": 1, "interval": 2}

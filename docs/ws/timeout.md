@@ -14,7 +14,7 @@ It is intended for testing WebSocket clients and verifying that they can correct
 Connect to the endpoint using the WebSocket scheme and specify the timeout in seconds as a path parameter.
 
 ```
-wss://api.foss42.com/ws/timeout/10
+wss://api.apidash.dev/ws/timeout/10
 ```
 
 When running the API locally:
@@ -38,7 +38,7 @@ ws://127.0.0.1:8000/ws/timeout/10
 
 ```javascript
 // Connect with a 5-second timeout
-const ws = new WebSocket("wss://api.foss42.com/ws/timeout/5");
+const ws = new WebSocket("wss://api.apidash.dev/ws/timeout/5");
 
 ws.onopen = () => {
     // Keep the connection alive by pinging every 3 seconds

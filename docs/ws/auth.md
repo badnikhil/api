@@ -21,7 +21,7 @@ Authenticate in either of two ways:
 Connect to the endpoint using the WebSocket scheme. Use `wss://` against the deployed (TLS) API, or `ws://` against a local server.
 
 ```
-wss://api.foss42.com/ws/auth?token=apidash-test-ws-token
+wss://api.apidash.dev/ws/auth?token=apidash-test-ws-token
 ```
 
 When running the API locally:
@@ -48,7 +48,7 @@ import websockets
 
 async def main():
     async with websockets.connect(
-        "wss://api.foss42.com/ws/auth",
+        "wss://api.apidash.dev/ws/auth",
         additional_headers={"Authorization": "Bearer apidash-test-ws-token"},
     ) as ws:
         print(await ws.recv())  # {"type": "auth", "status": "authenticated"}
@@ -62,7 +62,7 @@ asyncio.run(main())
 ### Example #2: JavaScript (browser `WebSocket`), query param auth
 
 ```javascript
-const ws = new WebSocket("wss://api.foss42.com/ws/auth?token=apidash-test-ws-token");
+const ws = new WebSocket("wss://api.apidash.dev/ws/auth?token=apidash-test-ws-token");
 
 ws.onmessage = (event) => console.log(event.data); // {"type": "auth", "status": "authenticated"}
 ```

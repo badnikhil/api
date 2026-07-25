@@ -14,7 +14,7 @@ It is intended as a self-hosted echo endpoint for testing WebSocket clients (suc
 Connect to the endpoint using the WebSocket scheme. Use `wss://` against the deployed (TLS) API, or `ws://` against a local server.
 
 ```
-wss://api.foss42.com/ws/echo
+wss://api.apidash.dev/ws/echo
 ```
 
 When running the API locally:
@@ -42,7 +42,7 @@ import websockets
 
 
 async def main():
-    async with websockets.connect("wss://api.foss42.com/ws/echo") as ws:
+    async with websockets.connect("wss://api.apidash.dev/ws/echo") as ws:
         await ws.send("Hello, echo!")
         reply = await ws.recv()
         print(reply)  # Hello, echo!
@@ -54,7 +54,7 @@ asyncio.run(main())
 ### Example #2: JavaScript (browser `WebSocket`)
 
 ```javascript
-const ws = new WebSocket("wss://api.foss42.com/ws/echo");
+const ws = new WebSocket("wss://api.apidash.dev/ws/echo");
 
 ws.onopen = () => ws.send(JSON.stringify({ msg: "Hello, echo!" }));
 ws.onmessage = (event) => console.log(event.data); // {"msg": "Hello, echo!"}
