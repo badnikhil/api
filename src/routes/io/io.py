@@ -213,3 +213,21 @@ async def octet_stream_request(request: Request):
     except:
         raise internal_error_500()
 
+@io_router.get('/csv')
+async def get_csv(lines: int = 10):
+    try:
+        if lines > 10000:
+            raise bad_request_400("lines cannot be more than 10000")
+        
+        if lines < 1:
+            return Response(content="", media_type="text/csv")
+        csv_content = "id,name,value\n"
+        for i in range(1, lines + 1):
+            csv_content += f"{i},name_{i},{i * 10}\n"
+            
+        return Response(content=csv_content, media_type="text/csv")
+    except HTTPException:
+        raise
+    except:
+        raise internal_error_500()
+
