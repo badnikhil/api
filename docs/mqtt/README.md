@@ -16,6 +16,51 @@ Running a real, spec-compliant broker is the only way to genuinely test QoS 1/2
 handshakes, retained messages, persistent sessions, Last Will and MQTT v5
 properties.
 
+## Why this is different from the other test endpoints (and why Docker)
+
+**Before — HTTP / WebSocket / SSE:** every test endpoint is a FastAPI route
+inside this app, served over its single HTTP(S) port. That works because HTTP,
+WebSocket (an HTTP upgrade) and SSE all ride on HTTP — and Azure App Service
+exposes exactly one HTTP/HTTPS port, which is all those need. No extra process,
+no extra infra.
+
+**MQTT is fundamentally different.** It's a stateful, connection-oriented
+**pub/sub** protocol over its **own TCP ports** (1883 plaintext, 8883 TLS,
+8083/8084 for MQTT-over-WebSocket), and it needs a **real broker** to hold
+sessions, subscriptions, retained messages and QoS state. It is **not** HTTP, so:
+
+- It **can't be a FastAPI route** like `/ws/echo` — there is no HTTP request to
+  answer; the client keeps a long-lived MQTT connection open to a broker.
+- Azure App Service **can't host a broker** either — it forwards only one
+  HTTP/HTTPS port and cannot open raw TCP 1883/8883. (The WS endpoints work there
+  *only* because WS is an HTTP upgrade over that same port.)
+- Faking broker semantics (QoS 1/2 handshakes, retained, sessions, LWT, v5
+  properties) as a FastAPI endpoint would mean re-implementing a broker, with
+  poor fidelity — not worth it.
+
+**So to test locally we run a real broker (Eclipse Mosquitto) + a publisher via
+Docker** — one command, full fidelity, no cloud needed. That is the "extra
+hassle": it buys you a spec-compliant broker to point the client at, instead of a
+fake HTTP shim.
+
+**What about production?** A shared, always-on hosted MQTT test endpoint (the
+equivalent of `api.apidash.dev/ws/echo`) is a **separate, maintainer-owned
+decision** — it needs a broker somewhere *outside* App Service (a managed broker
+like HiveMQ/EMQX Cloud, or a self-hosted VM). **This change intentionally covers
+local testing only;** the Azure/production infra is wired up separately.
+
+## What this adds
+
+- `mqtt/docker-compose.yml`, `mqtt/Dockerfile`, `mqtt/mosquitto/mosquitto.conf` —
+  the Dockerized broker + publisher service.
+- `mqtt/publisher.py` — the deterministic test-topic publisher (ticker, retained,
+  echo request/response incl. v5 `response_topic`, Last Will).
+- `docs/mqtt/` — this README plus per-scenario pages.
+- `tests/mqtt/test_mqtt.py` — broker round-trip tests that skip when no broker is
+  running (CI-safe).
+- `paho-mqtt` added to `requirements-dev.txt` only — the production app
+  (`requirements.txt`) is unchanged and pulls in no MQTT dependency.
+
 ## Run it
 
 From the repository root:
