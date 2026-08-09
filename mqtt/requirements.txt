@@ -1,0 +1,4 @@
+# Dependencies for the MQTT test publisher image (mqtt/Dockerfile).
+# Kept separate from the project's requirements.txt -- the FastAPI app does
+# not depend on MQTT.
+paho-mqtt>=2.0.0

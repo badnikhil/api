@@ -1,0 +1,45 @@
+# Local MQTT test rig for API Dash's MQTT client.
+#
+#   docker compose -f mqtt/docker-compose.yml up
+#
+# Brings up:
+#   - broker    : Eclipse Mosquitto 2.x (MQTT v3.1 / v3.1.1 / v5)
+#                 mqtt://localhost:1883   and   ws://localhost:9001
+#   - publisher : a small paho-mqtt client that produces deterministic,
+#                 subscribable test traffic (ticker / retained / echo / LWT).
+#
+# Nothing here touches the FastAPI app -- MQTT is not an HTTP route.
+#
+# Paths below are relative to this file's directory (mqtt/), so the command
+# above works from the repository root.
+
+services:
+  broker:
+    image: eclipse-mosquitto:2
+    container_name: apidash-mqtt-broker
+    ports:
+      - "1883:1883"   # MQTT over TCP
+      - "9001:9001"   # MQTT over WebSocket
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    restart: unless-stopped
+
+  publisher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apidash-mqtt-publisher
+    depends_on:
+      - broker
+    environment:
+      # The publisher reaches the broker over the compose network by service
+      # name. (From your host, the same broker is at localhost:1883.)
+      MQTT_HOST: broker
+      MQTT_PORT: "1883"
+    restart: unless-stopped
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
