@@ -47,12 +47,17 @@ fake HTTP shim.
 equivalent of `api.apidash.dev/ws/echo`) is a **separate, maintainer-owned
 decision** — it needs a broker somewhere *outside* App Service (a managed broker
 like HiveMQ/EMQX Cloud, or a self-hosted VM). **This change intentionally covers
-local testing only;** the Azure/production infra is wired up separately.
+local testing only;** the Azure/production infra is wired up separately. See
+[hosting](hosting.md) for maintainer notes on standing up a public broker.
 
 ## What this adds
 
 - `mqtt/docker-compose.yml`, `mqtt/Dockerfile`, `mqtt/mosquitto/mosquitto.conf` —
   the Dockerized broker + publisher service.
+- `mqtt/mosquitto/Dockerfile` + `mqtt/mosquitto/entrypoint.sh` — the broker image
+  (Mosquitto 2.x + `openssl`) that **auto-provisions** a self-signed TLS cert and
+  a seeded password file on first start, so TLS (`8883`) and auth (`1884`) work
+  with no manual steps.
 - `mqtt/publisher.py` — the deterministic test-topic publisher (ticker, retained,
   echo request/response incl. v5 `response_topic`, Last Will).
 - `docs/mqtt/` — this README plus per-scenario pages.
@@ -81,22 +86,29 @@ Stop it with `Ctrl-C`, or run detached with `-d` and stop via
 
 ## Endpoints
 
-| Transport | URL |
-| ----------- | ----------- |
-| MQTT over TCP | `mqtt://localhost:1883` |
-| MQTT over WebSocket | `ws://localhost:9001` |
+| Transport | URL | Auth | Notes |
+| ----------- | ----------- | ----------- | ----------- |
+| MQTT over TCP | `mqtt://localhost:1883` | anonymous | Everyday testing |
+| MQTT over WebSocket | `ws://localhost:9001` | anonymous | Browser / web clients — [websocket](websocket.md) |
+| MQTT over TLS | `mqtts://localhost:8883` | anonymous | Self-signed cert — [tls](tls.md) |
+| MQTT over TCP | `mqtt://localhost:1884` | **required** (`testuser` / `testpass`) | Always-on auth — [auth](auth.md) |
 
-Anonymous access is allowed by default (no username/password needed). See
-[Auth](auth.md) to test username/password.
+All four listeners are **auto-provisioned** — the broker image generates the
+self-signed TLS certificate and seeds the `testuser` / `testpass` password file
+on first start, so `docker compose up` is the only step; TLS and auth need **no
+config edits or manual commands**. `1883` and `9001` are anonymous for
+frictionless testing.
 
 ## Point API Dash at it
 
 In API Dash's MQTT client, create a connection to:
 
 - **Host:** `localhost`
-- **Port:** `1883` (TCP) or `9001` (WebSocket)
+- **Port:** `1883` (TCP), `9001` (WebSocket), `8883` (TLS), or `1884` (auth)
 - **Protocol:** MQTT v3.1.1 or v5 (both work)
-- **Auth:** none (anonymous), unless you enabled it
+- **Auth:** none on `1883`/`9001`/`8883`; on `1884` use `testuser` / `testpass`
+- **TLS:** for `8883`, enable **Use TLS** + **Allow Invalid Certificates**
+  (self-signed cert) — see [tls](tls.md)
 
 Then subscribe to `apidash/test/#` to see every test topic at once.
 
@@ -110,8 +122,8 @@ Then subscribe to `apidash/test/#` to see every test topic at once.
 | `apidash/test/status` | `online` / `offline` via Last Will (retained) | [lwt](lwt.md) |
 
 Further reference pages: [wildcards](wildcards.md), [qos](qos.md),
-[auth](auth.md), [MQTT v5 properties](v5_properties.md),
-[WebSocket transport](websocket.md).
+[auth](auth.md), [TLS](tls.md), [MQTT v5 properties](v5_properties.md),
+[WebSocket transport](websocket.md), [hosting a public broker](hosting.md).
 
 ## Tests
 
