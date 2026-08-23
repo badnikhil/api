@@ -1,0 +1,6 @@
+# Dependencies for the custom gRPC test server image (grpc/Dockerfile).
+# Kept separate from the project's requirements.txt -- the FastAPI app does not
+# depend on gRPC.
+grpcio>=1.60.0          # the gRPC runtime (server + channel)
+grpcio-tools>=1.60.0    # protoc + plugin, used to generate stubs at build time
+grpcio-reflection>=1.60.0  # server reflection (the Reflect button / grpcurl list)

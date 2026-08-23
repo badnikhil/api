@@ -1,0 +1,45 @@
+# Local gRPC test rig for API Dash's gRPC client.
+#
+#   docker compose -f grpc/docker-compose.yml up
+#
+# Brings up:
+#   - server : a CUSTOM gRPC server (built from ./Dockerfile) that serves OUR
+#              OWN apidash.test.TestService with mock/random data, so every gRPC
+#              feature has a concrete, reproducible method to point at. It has
+#              server reflection enabled and covers all four call types plus
+#              metadata-echo and error methods. Two listeners, no config needed:
+#                grpc://localhost:9000    plaintext gRPC / HTTP-2 cleartext (h2c)
+#                grpc://localhost:9001    gRPC over TLS  / HTTP-2 (h2, self-signed)
+#
+# This replaces the old rig, which ran the third-party moul/grpcbin image; here
+# we build and serve our own endpoints -- the gRPC analogue of the MQTT rig's
+# custom publisher (mqtt/docker-compose.yml).
+#
+# gRPC is an HTTP/2-based RPC protocol: it needs a real gRPC server to answer
+# reflection requests and to hold open the bidirectional HTTP/2 streams -- it
+# CANNOT be a FastAPI route, and Azure App Service's single HTTP port can't host
+# it. Nothing here touches the FastAPI app.
+#
+# Paths below are relative to this file's directory (grpc/), so the command above
+# works from the repository root.
+
+services:
+  server:
+    # Built from ./Dockerfile: python:3.12-slim + grpcio, the proto stubs
+    # generated at build time, and an entrypoint that mints the self-signed TLS
+    # cert (9001) on first start.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apidash-grpc-server
+    ports:
+      - "9000:9000"   # gRPC over plaintext HTTP/2 (h2c)
+      - "9001:9001"   # gRPC over TLS (h2, self-signed cert)
+    volumes:
+      # Persist the generated TLS cert so clients keep trusting the same cert
+      # across restarts.
+      - grpc-certs:/certs
+    restart: unless-stopped
+
+volumes:
+  grpc-certs:
