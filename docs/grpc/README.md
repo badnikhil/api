@@ -67,7 +67,7 @@ Azure/production infra is wired up separately.
   `grpc/docker-compose.yml` -- the image (generates the Protobuf stubs at build
   time and mints a self-signed TLS cert on first start) and the one-command rig.
 - `docs/grpc/` -- this README plus per-scenario pages (reflection, unary, the
-  three streaming modes, metadata, errors, TLS).
+  three streaming modes, metadata, auth, errors, TLS).
 
 ## Run it
 
@@ -131,7 +131,8 @@ that exercises it and the mock/random data it returns:
 | Server streaming | `apidash.test.TestService/StreamTicks` | A stream of `Tick`s with random values | [server_streaming](server_streaming.md) |
 | Client streaming | `apidash.test.TestService/SumNumbers` | `sum` / `count` / `average` of the numbers you send | [client_streaming](client_streaming.md) |
 | Bidirectional streaming | `apidash.test.TestService/Chat` | Each message echoed back, server-timestamped | [bidi](bidi.md) |
-| Metadata / auth-via-metadata | `apidash.test.TestService/EchoMetadata` | The request metadata, echoed back | [metadata](metadata.md) |
+| Metadata / auth-via-metadata | `apidash.test.TestService/EchoMetadata` | The request metadata echoed back, plus response initial + trailing metadata | [metadata](metadata.md) |
+| Auth (Bearer / API key) | `apidash.test.TestService/SecureEcho` | Echoes your message only with valid credentials; else `UNAUTHENTICATED` | [auth](auth.md) |
 | Errors / status codes | `apidash.test.TestService/RaiseError` | Fails with the gRPC status code you request | [errors](errors.md) |
 | TLS transport | any method on `localhost:9001` | Same methods over TLS | [tls](tls.md) |
 
@@ -139,7 +140,7 @@ Full method list:
 
 | Service | Methods |
 | ----------- | ----------- |
-| `apidash.test.TestService` | `Echo`, `GetRandomUser`, `StreamTicks`, `SumNumbers`, `Chat`, `EchoMetadata`, `RaiseError` |
+| `apidash.test.TestService` | `Echo`, `GetRandomUser`, `StreamTicks`, `SumNumbers`, `Chat`, `EchoMetadata`, `SecureEcho`, `RaiseError` |
 | `grpc.reflection.v1alpha.ServerReflection` | `ServerReflectionInfo` (used by **Reflect**) |
 
 > **Reflection version note:** the server registers the standard **v1alpha**
@@ -155,7 +156,8 @@ Full method list:
 - [server_streaming](server_streaming.md) -- `StreamTicks` (one request -> stream)
 - [client_streaming](client_streaming.md) -- `SumNumbers` (stream -> one response)
 - [bidi](bidi.md) -- `Chat` (bidirectional streaming echo)
-- [metadata](metadata.md) -- `EchoMetadata` (custom headers + auth-via-metadata)
+- [metadata](metadata.md) -- `EchoMetadata` (custom request headers + response metadata)
+- [auth](auth.md) -- `SecureEcho` (auth-protected: Bearer token / API key)
 - [errors](errors.md) -- `RaiseError` (choose the gRPC status code)
 - [tls](tls.md) -- gRPC over TLS on `9001`
 
