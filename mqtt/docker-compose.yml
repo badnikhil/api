@@ -1,0 +1,62 @@
+# Local MQTT test rig for API Dash's MQTT client.
+#
+#   docker compose -f mqtt/docker-compose.yml up
+#
+# Brings up:
+#   - broker    : Eclipse Mosquitto 2.x (MQTT v3.1 / v3.1.1 / v5). Four listeners,
+#                 all auto-provisioned (self-signed TLS cert + seeded password
+#                 file are generated on first start -- no manual steps):
+#                   mqtt://localhost:1883    plain TCP, anonymous
+#                   ws://localhost:9001      WebSocket, anonymous
+#                   mqtts://localhost:8883   TLS (self-signed), anonymous
+#                   mqtt://localhost:1884    plain TCP, auth required (testuser/testpass)
+#   - publisher : a small paho-mqtt client that produces deterministic,
+#                 subscribable test traffic (ticker / retained / echo / LWT).
+#
+# Nothing here touches the FastAPI app -- MQTT is not an HTTP route.
+#
+# Paths below are relative to this file's directory (mqtt/), so the command
+# above works from the repository root.
+
+services:
+  broker:
+    # Built from ./mosquitto/Dockerfile: eclipse-mosquitto:2 + openssl + an
+    # entrypoint that auto-generates the self-signed TLS cert (8883) and seeds
+    # the testuser/testpass password file (1884) on first start.
+    build:
+      context: ./mosquitto
+      dockerfile: Dockerfile
+    container_name: apidash-mqtt-broker
+    ports:
+      - "1883:1883"   # MQTT over TCP        (anonymous)
+      - "9001:9001"   # MQTT over WebSocket  (anonymous)
+      - "8883:8883"   # MQTT over TLS        (self-signed, anonymous)
+      - "1884:1884"   # MQTT over TCP        (username/password required)
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+      # Persist the generated TLS cert so clients keep trusting the same cert
+      # across restarts. (The password file lives on the container fs and is
+      # re-seeded deterministically by the entrypoint.)
+      - mosquitto-certs:/mosquitto/certs
+    restart: unless-stopped
+
+  publisher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apidash-mqtt-publisher
+    depends_on:
+      - broker
+    environment:
+      # The publisher reaches the broker over the compose network by service
+      # name. (From your host, the same broker is at localhost:1883.)
+      MQTT_HOST: broker
+      MQTT_PORT: "1883"
+    restart: unless-stopped
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+  mosquitto-certs:
