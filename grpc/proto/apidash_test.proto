@@ -1,0 +1,112 @@
+// -----------------------------------------------------------------------------
+// apidash.test.TestService -- the schema for API Dash's custom gRPC test rig.
+//
+// This is a TESTING FIXTURE, not production code. It exists so every gRPC
+// feature API Dash's client supports has a concrete, reproducible method to
+// point at -- the gRPC analogue of the MQTT rig's publisher.py scenarios.
+//
+// One small service exercises all four gRPC call types plus the cross-cutting
+// features (server reflection, metadata / auth-via-metadata, and error status
+// codes):
+//
+//   Echo           unary          echo back + server time + a server sequence no.
+//   GetRandomUser  unary          MOCK/RANDOM data (name/email/age/country)
+//   StreamTicks    server stream  N random "ticks" (a price/sensor-style feed)
+//   SumNumbers     client stream  sum / count / average of the numbers you send
+//   Chat           bidi stream    echoes each message back, stamped server-side
+//   EchoMetadata   unary          reflects the call's gRPC metadata back to you
+//   RaiseError     unary          fails with the gRPC status code you request
+//
+// The server (server.py) has server reflection enabled, so API Dash's Reflect
+// button discovers all of this with no .proto import needed. This file is kept
+// only so the schema is human-readable and importable if you prefer.
+// -----------------------------------------------------------------------------
+syntax = "proto3";
+
+package apidash.test;
+
+service TestService {
+  // Unary: echoes your message back, plus the server's wall-clock time and a
+  // monotonically increasing per-server sequence number. The simplest round-trip.
+  rpc Echo (EchoRequest) returns (EchoResponse);
+
+  // Unary: returns a randomly generated User (mock data) -- different every call.
+  rpc GetRandomUser (Empty) returns (User);
+
+  // Server streaming: one request -> a stream of Ticks with random values,
+  // like a price or sensor feed. Defaults to 10 ticks, 500ms apart.
+  rpc StreamTicks (TickRequest) returns (stream Tick);
+
+  // Client streaming: you stream numbers, the server returns their
+  // sum / count / average once you half-close.
+  rpc SumNumbers (stream NumberRequest) returns (SumResponse);
+
+  // Bidirectional streaming: full-duplex echo -- each ChatMessage you send is
+  // echoed back with a server-applied timestamp.
+  rpc Chat (stream ChatMessage) returns (stream ChatMessage);
+
+  // Unary: reflects the call's gRPC metadata (headers) back to you, for
+  // testing custom metadata and auth-via-metadata (e.g. an authorization token).
+  rpc EchoMetadata (Empty) returns (MetadataResponse);
+
+  // Unary: deliberately fails with the gRPC status code you request, for
+  // testing how the client surfaces non-OK statuses. code = a gRPC status code.
+  rpc RaiseError (ErrorRequest) returns (Empty);
+}
+
+// An empty message -- used where a call takes no meaningful input.
+message Empty {}
+
+message EchoRequest {
+  string message = 1;
+}
+
+message EchoResponse {
+  string message = 1;      // the message you sent, echoed back
+  string server_time = 2;  // the server's wall-clock time (ISO-8601, UTC)
+  int32 seq = 3;           // per-server sequence number (increments each Echo)
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  int32 age = 4;
+  string country = 5;
+}
+
+message TickRequest {
+  int32 count = 1;        // how many ticks to stream (0 -> default 10, capped)
+  int32 interval_ms = 2;  // delay between ticks in ms (0 -> default 500, capped)
+}
+
+message Tick {
+  int32 seq = 1;     // 1-based index of this tick within the stream
+  double value = 2;  // a random value (the "price"/"reading")
+  string ts = 3;     // server timestamp for this tick (ISO-8601, UTC)
+}
+
+message NumberRequest {
+  double value = 1;
+}
+
+message SumResponse {
+  double sum = 1;
+  int32 count = 2;
+  double average = 3;  // sum / count (0 if no numbers were sent)
+}
+
+message ChatMessage {
+  string user = 1;  // who sent it (free-form; the server echoes it back)
+  string text = 2;  // the message body
+  string ts = 3;    // timestamp -- the server fills this in on the echo
+}
+
+message MetadataResponse {
+  map<string, string> metadata = 1;  // the request metadata the server received
+}
+
+message ErrorRequest {
+  int32 code = 1;     // gRPC status code to fail with (e.g. 5 = NOT_FOUND)
+  string message = 2; // status message to attach (optional)
+}
