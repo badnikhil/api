@@ -86,6 +86,30 @@ This starts one service:
 Stop it with `Ctrl-C`, or run detached with `-d` and stop via
 `docker compose -f grpc/docker-compose.yml down`.
 
+## Tests
+
+A pytest round-trip suite (`tests/grpc/test_grpc.py`) exercises every method of
+`apidash.test.TestService` against a running server -- the gRPC analogue of the
+MQTT rig's `tests/mqtt/test_mqtt.py`. It covers reflection, unary (`Echo`,
+`GetRandomUser`), all three streaming modes (`StreamTicks`, `SumNumbers`,
+`Chat`), request/response metadata (`EchoMetadata`), auth-via-metadata
+(`SecureEcho`) and error status codes (`RaiseError`).
+
+The Protobuf stubs are generated on the fly at test-collection time from
+`grpc/proto/apidash_test.proto` (via `grpc_tools.protoc`), so nothing generated
+is committed. Run it:
+
+```
+docker compose -f grpc/docker-compose.yml up --build -d   # start the server
+pip install -r requirements-dev.txt                       # grpcio + tools + reflection
+pytest tests/grpc/test_grpc.py
+```
+
+The whole module **skips gracefully** (it does not fail) when grpcio /
+grpcio-tools are missing or when no server is reachable at `localhost:9000`, so
+CI without a server stays green. Point it elsewhere with the `GRPC_HOST` /
+`GRPC_PORT` environment variables.
+
 ## Endpoints
 
 | Transport | Address | TLS | Notes |
