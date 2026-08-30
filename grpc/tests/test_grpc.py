@@ -19,8 +19,8 @@ The whole module SKIPS gracefully when:
 so CI without a server still passes. To run them for real:
 
     docker compose -f grpc/docker-compose.yml up --build -d
-    pip install -r requirements-dev.txt
-    pytest tests/grpc/test_grpc.py
+    pip install -r grpc/requirements-dev.txt
+    pytest grpc/tests
 
 Each test is independent and hits one feature of the service.
 """

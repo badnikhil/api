@@ -1,7 +1,3 @@
 pytest
 httpx<0.28.0
 pytest-asyncio
-paho-mqtt>=2.0.0  # tests/mqtt: local MQTT broker round-trip tests (not needed by the prod app)
-grpcio  # tests/grpc: local gRPC server round-trip tests (not needed by the prod app)
-grpcio-tools  # tests/grpc: generates the Protobuf stubs on the fly from grpc/proto (not needed by the prod app)
-grpcio-reflection  # tests/grpc: client-side reflection listing in the round-trip tests (not needed by the prod app)
